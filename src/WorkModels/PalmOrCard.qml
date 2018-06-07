@@ -5,11 +5,8 @@ Model {
   model_id: 0
   name: "Ладонь или Карта"
 
-  Item {
-    objectName: "wait_actions"
+  WaitActions {
     ActionCard {}
-    ActionPalm {
-      log_success: 111
-    }
+    ActionPalm {}
   }
 }

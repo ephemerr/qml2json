@@ -5,8 +5,10 @@
 #include <QQmlComponent>
 #include <QThread>
 #include <QQuickItem>
+#include <QJsonDocument>
 
 
+QJsonArray readArray(QObject *object, const char *name);
 
 QJsonObject toJson(const QObject *obj) {
   QJsonObject res;
@@ -18,15 +20,19 @@ QJsonObject toJson(const QObject *obj) {
         auto val = propi.read(obj);
         res[key] = QJsonValue::fromVariant(val);
   }
-  return res;
-}
-
-QJsonArray readArray(QObject *object, const char *name) {
-  auto item = object->findChild<QQuickItem*>(name);
-  QJsonArray res;
-  foreach(auto action,  item->findChildren<QObject*>()) {
-    // qDebug() << action->metaObject()->className();
-    res.append(toJson(action));
+  foreach(auto child,  obj->findChildren<QObject*>(QString(), Qt::FindDirectChildrenOnly)) {
+    // qDebug() << child->metaObject()->className();
+    QSet<QString> subbranches;
+    subbranches << "success" << "fail" << "both" << "wait_actions" << "exec_actions";
+    auto branch_name = subbranches.find(child->objectName());
+    if (branch_name != subbranches.constEnd()) {
+      // qDebug() << *branch_name;
+      QJsonArray branch;
+      foreach(auto sub_child,  child->findChildren<QObject*>(QString(), Qt::FindDirectChildrenOnly)) {
+          branch.append(toJson(sub_child));
+      }
+      res[*branch_name] = branch;
+    }
   }
   return res;
 }
@@ -36,14 +42,10 @@ int main(int argc, char** argv) {
 
   QQmlEngine engine;
   QQmlComponent component(&engine,
-          QUrl::fromLocalFile("src/WorkModels/PalmOrCard.qml"));
+          QUrl::fromLocalFile("src/WorkModels/CardAndPalm.qml"));
   QObject *object = component.create();
   auto res = toJson(object);
-  res["wait_actions"] = readArray(object,"wait_actions");
-  res["exec_actions"] = readArray(object,"exec_actions");
   qDebug() << res;
 
-
   return 0;
-  // return app.exec();
 }
