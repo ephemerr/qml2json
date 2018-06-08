@@ -7,22 +7,20 @@
 #include <QQuickItem>
 #include <QJsonDocument>
 
-QJsonArray readArray(QObject *object, const char *name);
-
 QJsonObject toJson(const QObject *obj) {
   QJsonObject res;
   auto metaObj = obj->metaObject();
   QQuickItem item;
   for (int i = item.metaObject()->propertyCount(); i < metaObj->propertyCount(); ++i) {
         auto propi = metaObj->property(i);
-        auto key = QString(propi.name()) != "value" ? propi.name() : "id";
+        QSet<QString> id_names = {"model_id", "value"};
+        auto key = id_names.contains(propi.name()) ? "id" : propi.name();
         auto val = propi.read(obj);
         res[key] = QJsonValue::fromVariant(val);
   }
   foreach(auto child,  obj->findChildren<QObject*>(QString(), Qt::FindDirectChildrenOnly)) {
     // qDebug() << child->metaObject()->className();
-    QSet<QString> subbranches;
-    subbranches << "success" << "fail" << "both" << "wait_actions" << "exec_actions";
+    QSet<QString> subbranches = {"success", "fail", "both", "wait_actions", "exec_actions"};
     auto branch_name = subbranches.find(child->objectName());
     if (branch_name != subbranches.constEnd()) {
       // qDebug() << *branch_name;
