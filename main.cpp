@@ -7,7 +7,6 @@
 #include <QQuickItem>
 #include <QJsonDocument>
 
-
 QJsonArray readArray(QObject *object, const char *name);
 
 QJsonObject toJson(const QObject *obj) {
@@ -45,7 +44,7 @@ int main(int argc, char** argv) {
           QUrl::fromLocalFile("src/WorkModels/CardAndPalm.qml"));
   QObject *object = component.create();
   auto res = toJson(object);
-  qDebug() << res;
+  qDebug() << QJsonDocument(res).toJson().constData();
 
   return 0;
 }
