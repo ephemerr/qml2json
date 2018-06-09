@@ -138,8 +138,8 @@ QString qmlFromJsonObj(const QJsonObject *obj, ObjectType) {
 }
 
 QString qmlFromJson(const QJsonObject *obj) {
-  QString res = "import QtQuick 2.4;import \"WaitActions\";Model {";
-  return res + qmlFromJsonObj(obj, kObjectTypeModel);
+  return QString("import QtQuick 2.4;import \"WaitActions\";Model {%1}")
+                .arg(qmlFromJsonObj(obj, kObjectTypeModel));
 }
 
 QString offsetStr(int offset) {
@@ -149,13 +149,10 @@ QString offsetStr(int offset) {
 
 QString formatQml(QString qml) {
   QString res;
+  res.reserve(qml.size()*2);
   int offset=0;
   for(int i=0; i<qml.size(); i++) {
     switch(qml[i].toLatin1()) {
-        // case '[':
-        //   offset += 4;
-        //   res += "[\n" + offsetStr(offset);
-        //   break;
         case '{':
           offset += 4;
           res += "{\n" + offsetStr(offset);
@@ -165,12 +162,9 @@ QString formatQml(QString qml) {
           break;
         case '}':
           offset -= 4;
+          res.resize(res.size()-4);
           res += "}\n" + offsetStr(offset);
           break;
-        // case ']':
-        //   offset -= 4;
-        //   res += "]\n" + offsetStr(offset);
-        //   break;
         default:
           res += qml[i];
     }
